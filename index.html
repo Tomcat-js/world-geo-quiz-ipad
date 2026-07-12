@@ -258,6 +258,9 @@
 .continent-btn{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:22px;padding:8px 18px;font-size:15px;font-weight:600;cursor:pointer;transition:background 0.18s;}
 .continent-btn:hover{background:rgba(80,220,140,0.28);border-color:rgba(80,220,140,0.5);}
 .cbt-prog{font-size:12px;opacity:0.75;font-weight:400;}
+.scroll-nav{position:fixed;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:300;}
+.scroll-nav-btn{width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:1.2rem;cursor:pointer;opacity:0.75;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;transition:opacity 0.2s;}
+.scroll-nav-btn:hover,.scroll-nav-btn:active{opacity:1;}
 </style>
 <!-- Supabase JS client -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2000,7 +2003,18 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
   }, true);
 })();
 })();
+
+document.getElementById('scrollUpBtn').addEventListener('click',()=>{
+  document.getElementById('mapWrap').scrollIntoView({behavior:'smooth'});
+});
+document.getElementById('scrollDownBtn').addEventListener('click',()=>{
+  document.getElementById('tilesWrap').scrollIntoView({behavior:'smooth'});
+});
 </script>
 <div id="screen-celebrate" style="display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(ellipse at center,rgba(10,20,60,.98),rgba(3,8,25,.99));flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.3rem;padding:2rem"><canvas id="confettiCanvas" style="position:fixed;inset:0;pointer-events:none;z-index:10000"></canvas><div id="celEmoji" style="font-size:5.5rem;line-height:1.1;margin-bottom:.4rem">🌍</div><div id="celTitle" style="font-size:2.3rem;font-weight:900;color:#fff;margin:.2rem 0;letter-spacing:-.01em">Complete!</div><div id="celScore" style="font-size:1.25rem;color:rgba(255,255,255,.75);margin:.3rem 0 .6rem"></div><div id="celMsg" style="font-size:.95rem;color:rgba(255,255,255,.62);margin:.1rem 0 .5rem;max-width:300px;text-align:center;line-height:1.4"></div><div id="celStars" style="font-size:2.8rem;letter-spacing:.2rem;margin-bottom:1.4rem">⭐⭐⭐</div><button id="celBtn" style="padding:.85rem 2.6rem;background:linear-gradient(135deg,#4ecdc4,#44af69);color:#fff;border:none;border-radius:2rem;font-size:1.15rem;font-weight:800;cursor:pointer;box-shadow:0 4px 24px rgba(78,205,196,.5);letter-spacing:.02em">Keep Exploring 🌏</button></div>
+<div class="scroll-nav" id="scrollNav">
+  <button class="scroll-nav-btn" id="scrollUpBtn" aria-label="View map">&#9650;</button>
+  <button class="scroll-nav-btn" id="scrollDownBtn" aria-label="View names">&#9660;</button>
+</div>
 </body>
 </html>
