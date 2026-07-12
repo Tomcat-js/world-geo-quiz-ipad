@@ -217,8 +217,8 @@
     transition:transform 0.12s,box-shadow 0.12s;
   }
   .tile.selected{
-    background:var(--tile-border);color:#fff;
-    box-shadow:0 0 0 3px #fff,0 4px 14px rgba(0,0,0,0.45);
+    outline:3px solid #fff;outline-offset:3px;
+    box-shadow:0 0 0 6px rgba(255,255,255,0.35),0 4px 14px rgba(0,0,0,0.45);
     transform:scale(1.06);
   }
   .controls{display:flex;justify-content:center;gap:12px;margin:6px 0 4px;flex-wrap:wrap;}
@@ -1451,7 +1451,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
 
   /* ---- Tap-to-select / tap-to-place ---- */
   let selectedCode = null;
-  svg.addEventListener('pointerdown', handleMapTap);
+  mapWrap.addEventListener('pointerdown', handleMapTap);
 
   function attachTap(el, code){
     el.addEventListener('pointerdown', (ev) => {
@@ -1471,9 +1471,8 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
   function handleMapTap(ev){
     if(selectedCode === null) return;
     ev.preventDefault();
-    const hitEl = document.elementFromPoint(ev.clientX, ev.clientY);
-    const hitCode = (hitEl && hitEl.matches && hitEl.matches('path[data-code]'))
-      ? hitEl.getAttribute('data-code') : null;
+    const hitEl = (document.elementsFromPoint(ev.clientX, ev.clientY)||[]).find(el=>el.matches&&el.matches('path[data-code]'));
+    const hitCode = hitEl ? hitEl.getAttribute('data-code') : null;
     if(!hitCode){
       selectedCode = null;
       renderAll();
