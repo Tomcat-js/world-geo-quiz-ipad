@@ -843,6 +843,8 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
   ['north-africa','sub-saharan-africa'].forEach(id => { GHOST_SOURCES[id] = AFRICA_COUNTRIES; });
   const _allEurope = Object.values(EUROPE_REGIONS).flatMap(r => r.countries);
   ['west-europe','north-europe','south-europe','east-europe'].forEach(id => { GHOST_SOURCES[id] = _allEurope; });
+  const _allAsia = Object.values(ASIA_REGIONS).flatMap(r => r.countries);
+  ['east-asia','southeast-asia','south-asia','central-asia','middle-east'].forEach(id => { GHOST_SOURCES[id] = _allAsia; });
   const CONTINENT_REGION_GROUPS = {
     'north-africa':     { regions: ['north-africa','sub-saharan-africa'], title: 'Africa Complete!' },
     'sub-saharan-africa':{ regions: ['north-africa','sub-saharan-africa'], title: 'Africa Complete!' },
