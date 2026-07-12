@@ -762,7 +762,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       user_id: uid,
       region_id: regionId,
       correct_count: st.solved.size,
-      wrong_count: Math.max(st.wrong.size, loadedWrongCounts[regionId] || 0),
+      wrong_count: st.wrong.size,
       total_count: ds.countries.length,
       is_complete: (st.solved.size + st.wrong.size) >= ds.countries.length,
       updated_at: new Date().toISOString()
