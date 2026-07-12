@@ -2006,10 +2006,10 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
 })();
 
 document.getElementById('scrollUpBtn').addEventListener('click',()=>{
-  document.getElementById('mapWrap').scrollIntoView({behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
 });
 document.getElementById('scrollDownBtn').addEventListener('click',()=>{
-  document.getElementById('tilesWrap').scrollIntoView({behavior:'smooth'});
+  window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
 });
 </script>
 <div id="screen-celebrate" style="display:none;position:fixed;inset:0;z-index:9999;background:radial-gradient(ellipse at center,rgba(10,20,60,.98),rgba(3,8,25,.99));flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:.3rem;padding:2rem"><canvas id="confettiCanvas" style="position:fixed;inset:0;pointer-events:none;z-index:10000"></canvas><div id="celEmoji" style="font-size:5.5rem;line-height:1.1;margin-bottom:.4rem">🌍</div><div id="celTitle" style="font-size:2.3rem;font-weight:900;color:#fff;margin:.2rem 0;letter-spacing:-.01em">Complete!</div><div id="celScore" style="font-size:1.25rem;color:rgba(255,255,255,.75);margin:.3rem 0 .6rem"></div><div id="celMsg" style="font-size:.95rem;color:rgba(255,255,255,.62);margin:.1rem 0 .5rem;max-width:300px;text-align:center;line-height:1.4"></div><div id="celStars" style="font-size:2.8rem;letter-spacing:.2rem;margin-bottom:1.4rem">⭐⭐⭐</div><button id="celBtn" style="padding:.85rem 2.6rem;background:linear-gradient(135deg,#4ecdc4,#44af69);color:#fff;border:none;border-radius:2rem;font-size:1.15rem;font-weight:800;cursor:pointer;box-shadow:0 4px 24px rgba(78,205,196,.5);letter-spacing:.02em">Keep Exploring 🌏</button></div>
