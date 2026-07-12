@@ -242,7 +242,7 @@
   .wq-wrap svg{position:absolute;top:0;left:0;width:100%;height:100%;display:block;}
   .wq-item{stroke:#333;stroke-width:1.2;fill:#fff;cursor:default;transition:fill .2s ease;}
   .wq-item.wq-hover{fill:#e8e8e8;}
-  .wq-item.wq-drag-over{fill:#ffe066;stroke:#e6a400;stroke-width:2;}
+  .wq-tile.selected .pin-card{outline:3px solid #4bbfb5;background:rgba(75,191,181,0.2);}
   .wq-country{fill:#3aa655;stroke:#20703a;stroke-width:1.2;}
   .wq-region-named{fill:#4bbfb5;stroke:#2a8a82;stroke-width:1.2;cursor:pointer;}
   .wq-region-named:hover{fill:#3aafa5;}
@@ -257,7 +257,8 @@
   .wq-tray{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;
     min-height:52px;padding:10px;border:2px dashed #b9cccc;border-radius:14px;background:#f5fafa;
     touch-action:none;}
-  .wq-tile{display:flex;flex-direction:column;align-items:center;cursor:grab;user-select:none;touch-action:none;}
+  .wq-tile{display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;}
+  .wq-tray .pin-card{padding:8px 18px;font-size:1.05rem;font-weight:600;}
   .wq-hint{text-align:center;font-size:0.8rem;color:#637373;max-width:640px;margin:2px auto 8px;}
 .continent-btn{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:22px;padding:8px 18px;font-size:15px;font-weight:600;cursor:pointer;transition:background 0.18s;}
 .continent-btn:hover{background:rgba(80,220,140,0.28);border-color:rgba(80,220,140,0.5);}
@@ -335,7 +336,7 @@
       <button class="secondary" id="wqBackBtn">&larr; World map</button>
       <h1 style="margin:0;">🌍 World Quiz</h1>
     </div>
-    <p class="subtitle">Drag each name onto the right place on the map.</p>
+    <p class="subtitle">Tap a name, then tap its place on the map.</p>
   </header>
   <div class="wq-wrap" id="wqWrap">
     <svg id="wqSvg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg>
@@ -344,7 +345,7 @@
     <p class="wq-tray-label" id="wqTrayLabel">Tap a name, then tap its place on the map:</p>
     <div class="wq-tray" id="wqTray"></div>
   </div>
-  <p class="wq-hint">Drop each name onto the right shape. <strong>Teal regions</strong> have their own detailed quiz &mdash; click them to dive in!</p>
+  <p class="wq-hint">Tap a name tag, then tap its place on the map. <strong>Teal regions</strong> have their own quiz &mdash; tap them to play!</p>
 </section>
 
 <!-- ============ GAME SCREEN (per continent/region) ============ -->
@@ -1607,6 +1608,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
 
   // Track which world-quiz items have been named
   const wqNamed = new Set();
+  let selectedWqId = null;
 
   function wqGetSubQuizStatus(itemId){
     // Returns "none" | "clean" | "errors" based on sub-quiz completion
@@ -1672,9 +1674,18 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
         if(!named) path.classList.add("wq-hover");
       });
       path.addEventListener("pointerleave", () => path.classList.remove("wq-hover"));
-      if(named){
-        path.addEventListener("click", () => onWqShapeClick(item));
-      }
+      path.addEventListener("click", () => {
+        if(selectedWqId === item.id){
+          wqNamed.add(item.id);
+          selectedWqId = null;
+          saveWQProgress(item.id);
+          buildWorldQuizMap();
+          buildWorldQuizTray();
+          const qi = WORLD_QUIZ_ITEMS.find(i => i.id === item.id);
+          if(qi && qi.type === "region-live") showToast("✅ " + item.label + " — tap it on the map to play the quiz!", 2800);
+          else if(qi && qi.type === "region-placeholder") showToast("✅ " + item.label + " placed!", 1800);
+        } else { onWqShapeClick(item); }
+      });
       wqSvg.appendChild(path);
       // Label: always show when named, also show faint outline when unnamed to hint
       if(named){
@@ -1706,7 +1717,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     const shuffled = remaining.slice().sort(() => Math.random() - 0.5);
     shuffled.forEach(item => {
       const tile = document.createElement("div");
-      tile.className = "wq-tile";
+      tile.className = "wq-tile" + (item.id === selectedWqId ? " selected" : "");
       tile.dataset.wqId = item.id;
       const tileCard = document.createElement("div");
       tileCard.className = "pin-card";
@@ -1715,7 +1726,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       const tileTip = document.createElement("div");
       tileTip.className = "pin-tip";
       tile.appendChild(tileTip);
-      attachWqDrag(tile, item);
+      attachWqTap(tile, item);
       wqTray.appendChild(tile);
     });
   }
@@ -1743,80 +1754,12 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     }
   }
 
-  function attachWqDrag(tile, item){
-    tile.addEventListener("pointerdown", ev => startWqDrag(ev, tile, item));
-  }
-
-  function startWqDrag(ev, tile, item){
-    ev.preventDefault();
-    speakName(item.label);
-    const startRect = tile.getBoundingClientRect();
-    const startX = ev.clientX, startY = ev.clientY;
-    const ghost = document.createElement("div");
-    ghost.className = "wq-tile";
-    ghost.style.cssText = "position:fixed;pointer-events:none;opacity:0.88;z-index:9999;transform:translate(-50%,-100%);";
-    const ghostCard = document.createElement("div");
-    ghostCard.className = "pin-card";
-    ghostCard.textContent = item.label;
-    ghost.appendChild(ghostCard);
-    const ghostTip = document.createElement("div");
-    ghostTip.className = "pin-tip";
-    ghost.appendChild(ghostTip);
-    ghost.style.left = (startRect.left + startRect.width/2) + "px";
-    ghost.style.top = (startRect.top + startRect.height) + "px";
-    document.body.appendChild(ghost);
-    tile.style.visibility = "hidden";
-    let hoverEl = null;
-
-    function move(e){
-      ghost.style.left = e.clientX + "px";
-      ghost.style.top = e.clientY + "px";
-      ghost.style.display = "none";
-      const el = document.elementFromPoint(e.clientX, e.clientY);
-      ghost.style.display = "";
-      const target = el && el.getAttribute && el.getAttribute("data-wq-id") ? el : null;
-      if(target !== hoverEl){
-        if(hoverEl) hoverEl.classList.remove("wq-drag-over");
-        hoverEl = target;
-        if(hoverEl) hoverEl.classList.add("wq-drag-over");
-      }
-    }
-
-    function up(e){
-      document.removeEventListener("pointermove", move);
-      document.removeEventListener("pointerup", up);
-      if(hoverEl) hoverEl.classList.remove("wq-drag-over");
-      ghost.remove();
-      tile.style.visibility = "visible";
-      ghost.style.display = "none";
-      const dx = e.clientX - startX, dy = e.clientY - startY;
-      if(dx*dx + dy*dy < 40*40) return;
-      const el = document.elementFromPoint(e.clientX, e.clientY);
-      const droppedId = el && el.getAttribute && el.getAttribute("data-wq-id");
-      if(droppedId === item.id){
-        // Correct!
-        wqNamed.add(item.id);
-        saveWQProgress(item.id);
-        buildWorldQuizMap();
-        buildWorldQuizTray();
-
-        const quizItem = WORLD_QUIZ_ITEMS.find(i => i.id === item.id);
-        if(quizItem && quizItem.type === "region-live"){
-          showToast("✅ " + item.label + " — click it on the map to play the quiz!", 2800);
-        } else if(quizItem && quizItem.type === "region-placeholder"){
-          showToast("✅ " + item.label + " — quiz coming soon!", 2000);
-        }
-      } else if(droppedId){
-        // Wrong shape
-        const wrongEl = wqSvg.querySelector('[data-wq-id="'+droppedId+'"]');
-        if(wrongEl){
-          wrongEl.classList.add("wq-drag-over");
-          setTimeout(() => wrongEl.classList.remove("wq-drag-over"), 500);
-        }
-      }
-    }
-    document.addEventListener("pointermove", move);
-    document.addEventListener("pointerup", up);
+  function attachWqTap(tile, item){
+    tile.addEventListener("click", () => {
+      selectedWqId = (selectedWqId === item.id) ? null : item.id;
+      speakName(item.label);
+      buildWorldQuizTray();
+    });
   }
   /* ============ END WORLD QUIZ LOGIC ============ */
 
