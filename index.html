@@ -242,7 +242,7 @@
   .wq-wrap svg{position:absolute;top:0;left:0;width:100%;height:100%;display:block;}
   .wq-item{stroke:#333;stroke-width:1.2;fill:#fff;cursor:default;transition:fill .2s ease;}
   .wq-item.wq-hover{fill:#e8e8e8;}
-  .wq-tile.selected .pin-card{outline:3px solid #4bbfb5;background:rgba(75,191,181,0.2);}
+  .wq-tile.selected .pin-card{box-shadow:0 0 0 3px #4bbfb5;background:rgba(75,191,181,0.2);}
   .wq-country{fill:#3aa655;stroke:#20703a;stroke-width:1.2;}
   .wq-region-named{fill:#4bbfb5;stroke:#2a8a82;stroke-width:1.2;cursor:pointer;}
   .wq-region-named:hover{fill:#3aafa5;}
@@ -1755,9 +1755,11 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
 
   function attachWqTap(tile, item){
     tile.addEventListener("click", () => {
-      selectedWqId = (selectedWqId === item.id) ? null : item.id;
+      const wasSelected = selectedWqId === item.id;
+      selectedWqId = wasSelected ? null : item.id;
       speakName(item.label);
-      buildWorldQuizTray();
+      document.querySelectorAll('.wq-tile').forEach(t => t.classList.remove('selected'));
+      if (!wasSelected) tile.classList.add('selected');
     });
   }
   /* ============ END WORLD QUIZ LOGIC ============ */
