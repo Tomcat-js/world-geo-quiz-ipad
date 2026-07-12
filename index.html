@@ -335,7 +335,7 @@
     <svg id="wqSvg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet"></svg>
   </div>
   <div class="wq-tray-wrap">
-    <p class="wq-tray-label" id="wqTrayLabel">Drag these names onto the map:</p>
+    <p class="wq-tray-label" id="wqTrayLabel">Tap a name, then tap its place on the map:</p>
     <div class="wq-tray" id="wqTray"></div>
   </div>
   <p class="wq-hint">Drop each name onto the right shape. <strong>Teal regions</strong> have their own detailed quiz &mdash; click them to dive in!</p>
@@ -348,7 +348,7 @@
       <button class="secondary" id="backBtn">&larr; World map</button>
       <h1 id="gameTitle" style="margin:0;">Africa Map Quiz</h1>
     </div>
-    <p class="subtitle">Drag each country name onto its place on the map.</p>
+    <p class="subtitle">Tap a name to select it, then tap its country on the map. Wrong ones get revealed in red so you can learn them.</p>
   </header>
 
   <div class="statbar">
@@ -1371,7 +1371,6 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       pin.dataset.code = code;
       pin.style.left = p.xPct + "%";
       pin.style.top = p.yPct + "%";
-      attachDrag(pin, code);
       pinsLayer.appendChild(pin);
     });
     const wrapRect = mapWrap.getBoundingClientRect();
@@ -1454,7 +1453,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
   mapWrap.addEventListener('pointerdown', handleMapTap);
 
   function attachTap(el, code){
-    el.addEventListener('pointerdown', (ev) => {
+    el.addEventListener('pointerup', (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
       if(selectedCode === code){
