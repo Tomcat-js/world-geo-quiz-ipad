@@ -1371,6 +1371,15 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       pin.dataset.code = code;
       pin.style.left = p.xPct + "%";
       pin.style.top = p.yPct + "%";
+            pin.style.cursor = 'pointer';
+      pin.addEventListener('pointerdown', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        delete state().placements[code];
+        selectedCode = code;
+        speakName(byCode[code].name);
+        renderAll();
+      });
       pinsLayer.appendChild(pin);
     });
     const wrapRect = mapWrap.getBoundingClientRect();
