@@ -165,7 +165,7 @@
     position:absolute;transform:translate(-50%,-100%);
     pointer-events:auto;touch-action:none;
     display:flex;flex-direction:column;align-items:center;
-    cursor:grab; user-select:none;
+    cursor:default;ab; user-select:none;
     z-index:5;
   }
   .pin-card{
@@ -198,8 +198,6 @@
   .pin.wrong .pin-tip{border-top-color:var(--bad);}
   .pin.wrong .pin-tip::after{border-top-color:#fde7ea;}
   .pin.wrong{cursor:default; z-index:3;}
-  .pin.dragging{z-index:9999; cursor:grabbing; pointer-events:none;}
-  .pin.dragging .pin-card{box-shadow:0 6px 14px rgba(0,0,0,0.3);}
   .tray-wrap{width:100%;max-width:900px;padding:6px 10px 18px;}
   .tray-label{text-align:center;font-size:0.82rem;color:#4a5a5a;margin:2px 0 8px;}
   .tray{
@@ -214,11 +212,15 @@
   .tile{
     width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;
     background:var(--tile);border:2px solid var(--tile-border);border-radius:10px;
-    padding:8px 10px;font-size:0.88rem;font-weight:700;cursor:grab;user-select:none;
+    padding:10px 14px;font-size:1.1rem;font-weight:700;cursor:pointer;user-select:none;
     box-shadow:0 2px 5px rgba(0,0,0,0.18);
-    touch-action:none;
+    transition:transform 0.12s,box-shadow 0.12s;
   }
-  .tile.dragging{opacity:0;}
+  .tile.selected{
+    background:var(--tile-border);color:#fff;
+    box-shadow:0 0 0 3px #fff,0 4px 14px rgba(0,0,0,0.45);
+    transform:scale(1.06);
+  }
   .controls{display:flex;justify-content:center;gap:12px;margin:6px 0 4px;flex-wrap:wrap;}
   .hint{text-align:center;font-size:0.8rem;color:#637373;max-width:640px;margin:0 auto 4px;}
   footer{font-size:0.72rem;color:#7c8a8a;text-align:center;padding:10px;}
@@ -1238,6 +1240,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
   function openContinent(id){
     const ds = CONTINENT_DATASETS[id];
     currentId = id;
+    selectedCode = null;
     byCode = {};
     ds.countries.forEach(c => byCode[c.code] = c);
 
@@ -1338,10 +1341,10 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
 
   function makeTile(code){
     const tile = document.createElement("div");
-    tile.className = "tile";
+    tile.className = "tile" + (code === selectedCode ? " selected" : "");
     tile.textContent = byCode[code].name;
     tile.dataset.code = code;
-    attachDrag(tile, code);
+    attachTap(tile, code);
     return tile;
   }
 
@@ -1446,67 +1449,42 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     return { xPct: ((x-vb[0])/vb[2])*100, yPct: ((y-vb[1])/vb[3])*100 };
   }
 
-  /* ---- Drag handling (pointer events, mouse+touch+pen) ---- */
-  function attachDrag(el, code){
-    el.addEventListener("pointerdown", (ev) => startDrag(ev, el, code));
+  /* ---- Tap-to-select / tap-to-place ---- */
+  let selectedCode = null;
+  svg.addEventListener('pointerdown', handleMapTap);
+
+  function attachTap(el, code){
+    el.addEventListener('pointerdown', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      if(selectedCode === code){
+        selectedCode = null;
+        renderAll();
+        return;
+      }
+      selectedCode = code;
+      speakName(byCode[code].name);
+      renderAll();
+    });
   }
 
-  function startDrag(ev, el, code){
+  function handleMapTap(ev){
+    if(selectedCode === null) return;
     ev.preventDefault();
-    speakName(byCode[code].name);
-    const startRect = el.getBoundingClientRect();
-    const startX = ev.clientX, startY = ev.clientY;
-    const ghost = makePinEl(byCode[code].name, "dragging");
-    ghost.style.position = "fixed";
-    ghost.style.pointerEvents = "none";
-    ghost.style.left = (startRect.left + startRect.width/2) + "px";
-    ghost.style.top = (startRect.top + startRect.height/2) + "px";
-    document.body.appendChild(ghost);
-    el.style.visibility = "hidden";
-
-    function move(e){
-      ghost.style.left = e.clientX + "px";
-      ghost.style.top = e.clientY + "px";
-    }
-    function up(e){
-      document.removeEventListener("pointermove", move);
-      document.removeEventListener("pointerup", up);
-      ghost.style.display = "none";
-      const dropEl = document.elementFromPoint(e.clientX, e.clientY);
-      ghost.remove();
-      el.style.visibility = "visible";
-      const dx = e.clientX - startX, dy = e.clientY - startY;
-      if(dx*dx + dy*dy < 40*40){ delete state().placements[code]; renderAll(); return; }
-      handleDrop(code, e.clientX, e.clientY, dropEl);
-    }
-    document.addEventListener("pointermove", move);
-    document.addEventListener("pointerup", up);
-  }
-
-  function handleDrop(code, clientX, clientY, dropEl){
-    const st = state();
-    const trayRect = tray.getBoundingClientRect();
-    const overTray = clientX >= trayRect.left && clientX <= trayRect.right &&
-                      clientY >= trayRect.top && clientY <= trayRect.bottom;
-    if(overTray){
-      delete st.placements[code];
+    const hitEl = document.elementFromPoint(ev.clientX, ev.clientY);
+    const hitCode = (hitEl && hitEl.matches && hitEl.matches('path[data-code]'))
+      ? hitEl.getAttribute('data-code') : null;
+    if(!hitCode){
+      selectedCode = null;
       renderAll();
       return;
     }
     const wrapRect = mapWrap.getBoundingClientRect();
-    const overMap = clientX >= wrapRect.left && clientX <= wrapRect.right &&
-                     clientY >= wrapRect.top && clientY <= wrapRect.bottom;
-    if(!overMap){
-      delete st.placements[code];
-      renderAll();
-      return;
-    }
-    const hitCode = (dropEl && dropEl.matches && dropEl.matches('path[data-code]'))
-      ? dropEl.getAttribute("data-code")
-      : null;
-    const xPct = ((clientX - wrapRect.left) / wrapRect.width) * 100;
-    const yPct = ((clientY - wrapRect.top) / wrapRect.height) * 100;
-    st.placements[code] = { xPct, yPct, hitCode };
+    const xPct = ((ev.clientX - wrapRect.left) / wrapRect.width) * 100;
+    const yPct = ((ev.clientY - wrapRect.top) / wrapRect.height) * 100;
+    const st = state();
+    st.placements[selectedCode] = { xPct, yPct, hitCode };
+    selectedCode = null;
     renderAll();
   }
 
