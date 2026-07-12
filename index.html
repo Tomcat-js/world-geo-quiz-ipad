@@ -1202,6 +1202,15 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
 
   /* ---- Speech (Web Speech API) ---- */
   let cachedVoice = null;
+  // iOS: unlock speech synthesis on first user gesture
+  let _speechUnlocked = false;
+  document.addEventListener('pointerdown', function _unlockSpeech(){
+    if(_speechUnlocked||!window.speechSynthesis) return;
+    _speechUnlocked = true;
+    const _u = new SpeechSynthesisUtterance('');
+    _u.volume = 0;
+    window.speechSynthesis.speak(_u);
+  }, {once:true, capture:true});
   function pickBestVoice(){
     if(!("speechSynthesis" in window)) return null;
     const voices = window.speechSynthesis.getVoices();
@@ -1226,7 +1235,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
   function speakName(name){
     if(!("speechSynthesis" in window)) return;
     try{
-      window.speechSynthesis.cancel();
+      if(window.speechSynthesis.speaking) window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(name);
       const voice = cachedVoice || pickBestVoice();
       if(voice){ utter.voice = voice; utter.lang = voice.lang; }
