@@ -314,7 +314,10 @@
   <div style="text-align:center;margin:2px 0 8px;"><button class="action" id="openWorldQuizBtn">🌍 World Quiz</button></div>
 
   <div id="continentBtns" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:14px 0;padding:0 12px;"></div>
-  <div class="score-pct" id="scorePct"><span class="pct-num" id="scorePctNum">—</span><span class="pct-label">global accuracy</span></div></section>
+  <div class="score-pct" id="scorePct"><span class="pct-num" id="scorePctNum">—</span><span class="pct-label">global accuracy</span></div>  <div style="text-align:center;margin:20px 0 6px;">
+    <button id="resetProgressBtn" style="background:#c0392b;color:#fff;border:none;border-radius:8px;padding:8px 22px;font-size:0.82rem;font-weight:600;cursor:pointer;letter-spacing:0.02em;">⚠️ Reset All Progress</button>
+  </div>
+</section>
 
 <!-- ============ REGION SELECT SCREEN ============ -->
 <section class="screen" id="screen-regions">
@@ -1770,6 +1773,14 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     buildWorldQuizMap();
     buildWorldQuizTray();
     showScreen("world-quiz");
+  });
+  document.getElementById("resetProgressBtn").addEventListener("click", async () => {
+    if (!confirm("Reset ALL progress and start from scratch?\n\nThis cannot be undone.")) return;
+    if (currentUser) {
+      await _supa.from("progress").delete().eq("user_id", currentUser.id);
+      localStorage.removeItem("geo_v2_" + currentUser.id);
+    }
+    location.reload();
   });
   document.getElementById("wqBackBtn").addEventListener("click", () => {
     showScreen("world");
