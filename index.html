@@ -251,6 +251,9 @@
   .wq-complete-errors{fill:#e8a838;stroke:#b07a10;stroke-width:1.2;}
   .wq-label{font-size:11px;font-weight:700;fill:#1f2d2d;pointer-events:none;text-anchor:middle;
     paint-order:stroke;stroke:rgba(255,255,255,0.85);stroke-width:3px;}
+  .wq-bubble-line{stroke:#8899aa;stroke-width:0.8;stroke-dasharray:3,2;pointer-events:none;}
+  .wq-bubble-bg{fill:#e4ecf4;stroke:#8899aa;stroke-width:0.8;}
+  .wq-bubble-ring{fill:none;stroke:#8899aa;stroke-width:0.8;pointer-events:none;}
   .wq-label.on-color{fill:#fff;stroke:rgba(0,0,0,0.3);stroke-width:2px;}
   .wq-tray-wrap{width:100%;max-width:900px;padding:6px 10px 18px;}
   .wq-tray-label{text-align:center;font-size:0.82rem;color:#4a5a5a;margin:2px 0 8px;}
@@ -1663,6 +1666,59 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     return "wq-item wq-placeholder-named";
   }
 
+  let wqMagRaf = null;
+  function addWqMagnifiers(){
+    const vb = wqSvg.viewBox.baseVal;
+    const mapW = vb.width||1000, mapH = vb.height||450;
+    const R = mapH * 0.042;
+    const THRESH = R * R * 4;
+    const placed = [];
+    const NS = 'http://www.w3.org/2000/svg';
+    let defs = wqSvg.querySelector('defs');
+    if(!defs){ defs = document.createElementNS(NS,'defs'); wqSvg.insertBefore(defs,wqSvg.firstChild); }
+    wqSvg.querySelectorAll('path[data-wq-id]').forEach(path => {
+      const bb = path.getBBox();
+      if(!bb.width && !bb.height) return;
+      if(bb.width * bb.height > THRESH) return;
+      const id = path.getAttribute('data-wq-id');
+      const item = WORLD_QUIZ_ITEMS.find(i => i.id === id);
+      if(!item) return;
+      const pcx = bb.x + bb.width/2, pcy = bb.y + bb.height/2;
+      const scale = (R * 1.6) / Math.max(bb.width, bb.height, 0.5);
+      let bx = pcx, by = pcy;
+      for(const ang of [270,315,225,0,180,45,135,90].map(a=>a*Math.PI/180)){
+        const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*3.5, R+4), mapW-R-4);
+        const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*3.5, R+4), mapH-R-4);
+        if(placed.every(p=>Math.hypot(p.x-tx,p.y-ty)>R*2.5)){ bx=tx; by=ty; break; }
+      }
+      placed.push({x:bx, y:by});
+      const clipId = 'wqmag-'+id;
+      const mkEl = t => document.createElementNS(NS,t);
+      const clip = mkEl('clipPath'); clip.setAttribute('id',clipId);
+      const cc = mkEl('circle'); cc.setAttribute('cx',bx); cc.setAttribute('cy',by); cc.setAttribute('r',R);
+      clip.appendChild(cc); defs.appendChild(clip);
+      const line = mkEl('line');
+      line.setAttribute('x1',pcx); line.setAttribute('y1',pcy);
+      line.setAttribute('x2',bx); line.setAttribute('y2',by);
+      line.setAttribute('class','wq-bubble-line'); wqSvg.appendChild(line);
+      const bg = mkEl('circle');
+      bg.setAttribute('cx',bx); bg.setAttribute('cy',by); bg.setAttribute('r',R);
+      bg.setAttribute('class','wq-bubble-bg'); wqSvg.appendChild(bg);
+      const zp = mkEl('path');
+      zp.setAttribute('d',item.d); zp.setAttribute('fill-rule','evenodd');
+      zp.setAttribute('class',path.getAttribute('class'));
+      zp.setAttribute('transform',`translate(${bx},${by}) scale(${scale}) translate(${-pcx},${-pcy})`);
+      zp.setAttribute('clip-path',`url(#${clipId})`);
+      zp.style.cursor='pointer';
+      zp.addEventListener('click',e=>{ e.stopPropagation(); path.dispatchEvent(new MouseEvent('click',{bubbles:false})); });
+      zp.addEventListener('pointerenter',()=>{ if(!wqNamed.has(id)){ path.classList.add('wq-hover'); zp.setAttribute('class',path.getAttribute('class')+' wq-hover'); }});
+      zp.addEventListener('pointerleave',()=>{ path.classList.remove('wq-hover'); zp.setAttribute('class',path.getAttribute('class')); });
+      wqSvg.appendChild(zp);
+      const ring = mkEl('circle');
+      ring.setAttribute('cx',bx); ring.setAttribute('cy',by); ring.setAttribute('r',R);
+      ring.setAttribute('class','wq-bubble-ring'); wqSvg.appendChild(ring);
+    });
+  }
   function buildWorldQuizMap(){
     wqSvg.innerHTML = "";
     WORLD_QUIZ_ITEMS.forEach(item => {
@@ -1700,6 +1756,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       }
 
     });
+    cancelAnimationFrame(wqMagRaf); wqMagRaf = requestAnimationFrame(addWqMagnifiers);
   }
 
   function buildWorldQuizTray(){
