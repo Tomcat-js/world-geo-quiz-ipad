@@ -1333,7 +1333,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       line.setAttribute('class','wq-bubble-line'); svg.appendChild(line);
       const bg = mkEl('circle');
       bg.setAttribute('cx',bx); bg.setAttribute('cy',by); bg.setAttribute('r',R);
-      bg.setAttribute('class','wq-bubble-bg'); svg.appendChild(bg);
+      bg.setAttribute('class','wq-bubble-bg'); bg.setAttribute('data-code',code); bg.style.cursor='pointer'; svg.appendChild(bg);
       const zp = mkEl('path');
       zp.setAttribute('d',country.d); zp.setAttribute('fill-rule','evenodd');
       zp.setAttribute('class','country');
@@ -1561,7 +1561,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
   function handleMapTap(ev){
     if(selectedCode === null) return;
     ev.preventDefault();
-    const hitEl = (document.elementsFromPoint(ev.clientX, ev.clientY)||[]).find(el=>el.matches&&el.matches('path[data-code]'));
+    const hitEl = (document.elementsFromPoint(ev.clientX, ev.clientY)||[]).find(el=>el.matches&&el.matches('path[data-code], circle[data-code]'));
     const hitCode = hitEl ? hitEl.getAttribute('data-code') : null;
     if(!hitCode){
       selectedCode = null;
@@ -1764,7 +1764,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       line.setAttribute('class','wq-bubble-line'); wqSvg.appendChild(line);
       const bg = mkEl('circle');
       bg.setAttribute('cx',bx); bg.setAttribute('cy',by); bg.setAttribute('r',R);
-      bg.setAttribute('class','wq-bubble-bg'); wqSvg.appendChild(bg);
+      bg.setAttribute('class','wq-bubble-bg'); bg.style.cursor='pointer'; bg.addEventListener('click',e=>{ e.stopPropagation(); path.dispatchEvent(new MouseEvent('click',{bubbles:false})); }); wqSvg.appendChild(bg);
       const zp = mkEl('path');
       zp.setAttribute('d',item.d); zp.setAttribute('fill-rule','evenodd');
       zp.setAttribute('class',path.getAttribute('class'));
