@@ -1668,7 +1668,6 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
 
   let wqMagRaf = null;
   function addWqMagnifiers(){
-    window._magCalled = (window._magCalled||0)+1; console.log("addWqMag#"+window._magCalled);
     const vb = wqSvg.viewBox.baseVal;
     const mapW = vb.width||1000, mapH = vb.height||450;
     const R = mapH * 0.042;
@@ -1757,7 +1756,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       }
 
     });
-    cancelAnimationFrame(wqMagRaf); wqMagRaf = requestAnimationFrame(addWqMagnifiers);
+    clearTimeout(wqMagRaf); wqMagRaf = setTimeout(addWqMagnifiers, 0);
   }
 
   function buildWorldQuizTray(){
@@ -1831,7 +1830,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     buildWorldQuizMap();
     buildWorldQuizTray();
     showScreen("world-quiz");
-    requestAnimationFrame(addWqMagnifiers);
+    setTimeout(addWqMagnifiers, 0);
   });
   document.getElementById("resetProgressBtn").addEventListener("click", async () => {
     if (!confirm("Reset ALL progress and start from scratch?\n\nThis cannot be undone.")) return;
