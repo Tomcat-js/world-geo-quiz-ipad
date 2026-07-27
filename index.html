@@ -1288,10 +1288,66 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     buildMap(ds.countries);
     renderAll();
     showScreen("game");
+    setTimeout(() => addMapMagnifiers(ds.countries), 0);
   }
 
   function state(){ return gameState[currentId]; }
 
+  function addMapMagnifiers(countries){
+    svg.querySelectorAll('.wq-bubble-line,.wq-bubble-bg,.wq-bubble-ring').forEach(e=>e.remove());
+    svg.querySelectorAll('path[clip-path]').forEach(e=>e.remove());
+    document.querySelectorAll('clipPath[id^="mag-"]').forEach(e=>e.remove());
+    const vb = svg.viewBox.baseVal;
+    const mapW = vb.width||1000, mapH = vb.height||500;
+    const R = mapH * 0.06;
+    const THRESH = R * R * 4;
+    const placed = [];
+    const NS = 'http://www.w3.org/2000/svg';
+    let defs = svg.querySelector('defs');
+    if(!defs){ defs = document.createElementNS(NS,'defs'); svg.insertBefore(defs,svg.firstChild); }
+    svg.querySelectorAll('path[data-code]').forEach(path => {
+      const bb = path.getBBox();
+      if(!bb.width && !bb.height) return;
+      if(bb.width * bb.height > THRESH) return;
+      const code = path.getAttribute('data-code');
+      const country = countries.find(c => c.code === code);
+      if(!country) return;
+      const pcx = bb.x + bb.width/2, pcy = bb.y + bb.height/2;
+      const scale = (R * 1.6) / Math.max(bb.width, bb.height, 0.5);
+      let bx = pcx, by = pcy;
+      for(const ang of [270,315,225,0,180,45,135,90].map(a=>a*Math.PI/180)){
+        const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*3.5, R+4), mapW-R-4);
+        const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*3.5, R+4), mapH-R-4);
+        if(placed.every(p=>Math.hypot(p.x-tx,p.y-ty)>R*2.5)){ bx=tx; by=ty; break; }
+      }
+      placed.push({x:bx, y:by});
+      const clipId = 'mag-'+code;
+      const mkEl = t => document.createElementNS(NS,t);
+      const clip = mkEl('clipPath'); clip.setAttribute('id',clipId);
+      const cc = mkEl('circle'); cc.setAttribute('cx',bx); cc.setAttribute('cy',by); cc.setAttribute('r',R);
+      clip.appendChild(cc); defs.appendChild(clip);
+      const line = mkEl('line');
+      line.setAttribute('x1',pcx); line.setAttribute('y1',pcy);
+      line.setAttribute('x2',bx); line.setAttribute('y2',by);
+      line.setAttribute('class','wq-bubble-line'); svg.appendChild(line);
+      const bg = mkEl('circle');
+      bg.setAttribute('cx',bx); bg.setAttribute('cy',by); bg.setAttribute('r',R);
+      bg.setAttribute('class','wq-bubble-bg'); svg.appendChild(bg);
+      const zp = mkEl('path');
+      zp.setAttribute('d',country.d); zp.setAttribute('fill-rule','evenodd');
+      zp.setAttribute('class',path.getAttribute('class'));
+      zp.setAttribute('transform','translate('+bx+','+by+') scale('+scale+') translate('+(-pcx)+','+(-pcy)+')');
+      zp.setAttribute('clip-path','url(#'+clipId+')');
+      zp.style.cursor='pointer';
+      zp.addEventListener('click',e=>{ e.stopPropagation(); path.dispatchEvent(new MouseEvent('click',{bubbles:false})); });
+      zp.addEventListener('pointerenter',()=>{ path.classList.add('hover'); zp.setAttribute('class',path.getAttribute('class')+' hover'); });
+      zp.addEventListener('pointerleave',()=>{ path.classList.remove('hover'); zp.setAttribute('class',path.getAttribute('class')); });
+      svg.appendChild(zp);
+      const ring = mkEl('circle');
+      ring.setAttribute('cx',bx); ring.setAttribute('cy',by); ring.setAttribute('r',R);
+      ring.setAttribute('class','wq-bubble-ring'); svg.appendChild(ring);
+    });
+  }
   function buildMap(countries){
     svg.innerHTML = "";
     const ghosts = GHOST_SOURCES[currentId];
