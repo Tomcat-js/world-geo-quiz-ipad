@@ -1830,6 +1830,7 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     buildWorldQuizMap();
     buildWorldQuizTray();
     showScreen("world-quiz");
+    requestAnimationFrame(addWqMagnifiers);
   });
   document.getElementById("resetProgressBtn").addEventListener("click", async () => {
     if (!confirm("Reset ALL progress and start from scratch?\n\nThis cannot be undone.")) return;
