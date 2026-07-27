@@ -1643,6 +1643,8 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       gameState[currentId] = st;
       renderAll();
       refreshWorldBadges();
+      saveLocalProgress();
+      saveProgress(currentId);
     }
   });
   backBtn.addEventListener("click", () => {
