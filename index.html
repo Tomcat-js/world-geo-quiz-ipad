@@ -776,6 +776,8 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       region_id: regionId,
       correct_count: st.solved.size,
       wrong_count: st.wrong.size,
+      solved_codes: [...st.solved],
+      wrong_codes: [...st.wrong],
       total_count: ds.countries.length,
       is_complete: (st.solved.size + st.wrong.size) >= ds.countries.length,
       updated_at: new Date().toISOString()
@@ -797,13 +799,13 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       }
       loadedWrongCounts[row.region_id] = row.wrong_count;
       loadedCorrectCounts[row.region_id] = row.correct_count;
-      if (row.is_complete && CONTINENT_DATASETS[row.region_id]) {
-        if (!gameState[row.region_id]) gameState[row.region_id] = {
-          solved: new Set(), wrong: new Set(), placements: {}, active: [], pool: []
-        };
-        const st = gameState[row.region_id];
-        CONTINENT_DATASETS[row.region_id].countries.forEach(c => st.solved.add(c.code));
-        for (let i = 0; i < row.wrong_count; i++) st.wrong.add('__wrong__' + i);
+      const ds = CONTINENT_DATASETS[row.region_id];
+      if (ds && !gameState[row.region_id]) {
+        const solved = new Set(row.is_complete ? ds.countries.map(c => c.code) : (row.solved_codes || []));
+        const wrong = new Set(row.is_complete ? [] : (row.wrong_codes || []));
+        if (row.is_complete) { for (let i = 0; i < row.wrong_count; i++) wrong.add('__wrong__' + i); }
+        const active = ds.countries.map(c => c.code).filter(c => !solved.has(c) && !wrong.has(c));
+        gameState[row.region_id] = { solved, wrong, placements: {}, active, pool: [] };
       }
     });
     // Restore WQ visual state from saved progress
