@@ -1317,9 +1317,12 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       const scale = (R * 1.6) / Math.max(bb.width, bb.height, 0.5);
       if(scale < 1.2) return;
       let bx = pcx, by = pcy;
-      for(const ang of [270,315,225,0,180,45,135,90].map(a=>a*Math.PI/180)){
-        const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*5.5, R+4), mapW-R-4);
-        const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*5.5, R+4), mapH-R-4);
+      const vBias = pcy < vb.y + mapH/2 ? 1 : -1;
+      const hBias = pcx < vb.x + mapW/2 ? 1 : -1;
+      const angles = [270,315,225,0,180,45,135,90].map(a=>a*Math.PI/180).sort((a,b)=>(Math.cos(b)*hBias+Math.sin(b)*vBias)-(Math.cos(a)*hBias+Math.sin(a)*vBias));
+      for(const ang of angles){
+        const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*5.5, vb.x+R+4), vb.x+mapW-R-4);
+        const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*5.5, vb.y+R+4), vb.y+mapH-R-4);
         if(placed.every(p=>Math.hypot(p.x-tx,p.y-ty)>R*2.5)){ bx=tx; by=ty; break; }
       }
       placed.push({x:bx, y:by});
@@ -1750,9 +1753,12 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       const pcx = bb.x + bb.width/2, pcy = bb.y + bb.height/2;
       const scale = (R * 1.6) / Math.max(bb.width, bb.height, 0.5);
       let bx = pcx, by = pcy;
-      for(const ang of [270,315,225,0,180,45,135,90].map(a=>a*Math.PI/180)){
-        const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*5.5, R+4), mapW-R-4);
-        const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*5.5, R+4), mapH-R-4);
+      const vBias = pcy < vb.y + mapH/2 ? 1 : -1;
+      const hBias = pcx < vb.x + mapW/2 ? 1 : -1;
+      const angles = [270,315,225,0,180,45,135,90].map(a=>a*Math.PI/180).sort((a,b)=>(Math.cos(b)*hBias+Math.sin(b)*vBias)-(Math.cos(a)*hBias+Math.sin(a)*vBias));
+      for(const ang of angles){
+        const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*5.5, vb.x+R+4), vb.x+mapW-R-4);
+        const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*5.5, vb.y+R+4), vb.y+mapH-R-4);
         if(placed.every(p=>Math.hypot(p.x-tx,p.y-ty)>R*2.5)){ bx=tx; by=ty; break; }
       }
       placed.push({x:bx, y:by});
