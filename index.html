@@ -1303,15 +1303,17 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     const R = mapH * 0.045;
     const THRESH = R * R * 4;
     const placed = [];
-    const __landPaths = Array.from(svg.querySelectorAll('path[data-code]')).map(p => new Path2D(p.getAttribute('d')));
+    const __landPaths = Array.from(svg.querySelectorAll('path[data-code]')).map(p => { const bb = p.getBBox(); return { d: new Path2D(p.getAttribute('d')), x0: bb.x, y0: bb.y, x1: bb.x+bb.width, y1: bb.y+bb.height }; });
     const __ctx = document.createElement('canvas').getContext('2d');
     function __landClear(cx, cy, r){
-      const pts = [[cx,cy]];
-      for(let k=0;k<8;k++){ const a=k*Math.PI/4; pts.push([cx+Math.cos(a)*r*0.85, cy+Math.sin(a)*r*0.85]); }
+      const pts = [[cx,cy],[cx+r*0.85,cy],[cx-r*0.85,cy],[cx,cy+r*0.85],[cx,cy-r*0.85]];
       let clear = 0;
       for(const pt of pts){
         let inLand = false;
-        for(const lp of __landPaths){ if(__ctx.isPointInPath(lp, pt[0], pt[1], 'evenodd')){ inLand = true; break; } }
+        for(const lp of __landPaths){
+          if(pt[0]<lp.x0||pt[0]>lp.x1||pt[1]<lp.y0||pt[1]>lp.y1) continue;
+          if(__ctx.isPointInPath(lp.d, pt[0], pt[1], 'evenodd')){ inLand = true; break; }
+        }
         if(!inLand) clear++;
       }
       return clear / pts.length;
@@ -1332,9 +1334,9 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       let bx = pcx, by = pcy;
       const vBias = pcy < vb.y + mapH/2 ? 1 : -1;
       const hBias = pcx < vb.x + mapW/2 ? 1 : -1;
-      const angles = [270,315,225,0,180,45,135,90,292.5,337.5,247.5,22.5,157.5,202.5,112.5,67.5].map(a=>a*Math.PI/180).sort((a,b)=>(Math.cos(b)*hBias+Math.sin(b)*vBias)-(Math.cos(a)*hBias+Math.sin(a)*vBias));
+      const angles = [270,315,225,0,180,45,135,90].map(a=>a*Math.PI/180).sort((a,b)=>(Math.cos(b)*hBias+Math.sin(b)*vBias)-(Math.cos(a)*hBias+Math.sin(a)*vBias));
       let bestScore = -Infinity;
-      outer: for(const distMul of [3.2,4.2,5.2,6.2,7.2]){
+      outer: for(const distMul of [3.2,4.5,6,7.5]){
         for(const ang of angles){
           const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*distMul, vb.x+R+4), vb.x+mapW-R-4);
           const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*distMul, vb.y+R+4), vb.y+mapH-R-4);
@@ -1760,15 +1762,17 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     const R = mapH * 0.032;
     const THRESH = R * R * 4;
     const placed = [];
-    const __landPaths = Array.from(wqSvg.querySelectorAll('path[data-wq-id]')).map(p => new Path2D(p.getAttribute('d')));
+    const __landPaths = Array.from(wqSvg.querySelectorAll('path[data-wq-id]')).map(p => { const bb = p.getBBox(); return { d: new Path2D(p.getAttribute('d')), x0: bb.x, y0: bb.y, x1: bb.x+bb.width, y1: bb.y+bb.height }; });
     const __ctx = document.createElement('canvas').getContext('2d');
     function __landClear(cx, cy, r){
-      const pts = [[cx,cy]];
-      for(let k=0;k<8;k++){ const a=k*Math.PI/4; pts.push([cx+Math.cos(a)*r*0.85, cy+Math.sin(a)*r*0.85]); }
+      const pts = [[cx,cy],[cx+r*0.85,cy],[cx-r*0.85,cy],[cx,cy+r*0.85],[cx,cy-r*0.85]];
       let clear = 0;
       for(const pt of pts){
         let inLand = false;
-        for(const lp of __landPaths){ if(__ctx.isPointInPath(lp, pt[0], pt[1], 'evenodd')){ inLand = true; break; } }
+        for(const lp of __landPaths){
+          if(pt[0]<lp.x0||pt[0]>lp.x1||pt[1]<lp.y0||pt[1]>lp.y1) continue;
+          if(__ctx.isPointInPath(lp.d, pt[0], pt[1], 'evenodd')){ inLand = true; break; }
+        }
         if(!inLand) clear++;
       }
       return clear / pts.length;
@@ -1788,9 +1792,9 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       let bx = pcx, by = pcy;
       const vBias = pcy < vb.y + mapH/2 ? 1 : -1;
       const hBias = pcx < vb.x + mapW/2 ? 1 : -1;
-      const angles = [270,315,225,0,180,45,135,90,292.5,337.5,247.5,22.5,157.5,202.5,112.5,67.5].map(a=>a*Math.PI/180).sort((a,b)=>(Math.cos(b)*hBias+Math.sin(b)*vBias)-(Math.cos(a)*hBias+Math.sin(a)*vBias));
+      const angles = [270,315,225,0,180,45,135,90].map(a=>a*Math.PI/180).sort((a,b)=>(Math.cos(b)*hBias+Math.sin(b)*vBias)-(Math.cos(a)*hBias+Math.sin(a)*vBias));
       let bestScore = -Infinity;
-      outer: for(const distMul of [3.2,4.2,5.2,6.2,7.2]){
+      outer: for(const distMul of [3.2,4.5,6,7.5]){
         for(const ang of angles){
           const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*distMul, vb.x+R+4), vb.x+mapW-R-4);
           const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*distMul, vb.y+R+4), vb.y+mapH-R-4);
