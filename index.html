@@ -1300,12 +1300,9 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     document.querySelectorAll('clipPath[id^="mag-"]').forEach(e=>e.remove());
     const vb = svg.viewBox.baseVal;
     const mapW = vb.width||1000, mapH = vb.height||500;
-    let R = mapH * 0.06;
+    const R = mapH * 0.045;
     const THRESH = R * R * 4;
     const placed = [];
-    let __mc = 0;
-    svg.querySelectorAll('path[data-code]').forEach(p=>{ const b=p.getBBox(); if((b.width||b.height) && b.width*b.height<=THRESH) __mc++; });
-    if(__mc > 6){ R = R * Math.max(0.5, Math.sqrt(6/__mc)); }
     const __landPaths = Array.from(svg.querySelectorAll('path[data-code]')).map(p => new Path2D(p.getAttribute('d')));
     const __ctx = document.createElement('canvas').getContext('2d');
     function __landClear(cx, cy, r){
@@ -1760,12 +1757,9 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     document.querySelectorAll('clipPath[id^="wqmag-"]').forEach(e=>e.remove());
     const vb = wqSvg.viewBox.baseVal;
     const mapW = vb.width||1000, mapH = vb.height||450;
-    let R = mapH * 0.042;
+    const R = mapH * 0.032;
     const THRESH = R * R * 4;
     const placed = [];
-    let __mc = 0;
-    wqSvg.querySelectorAll('path[data-wq-id]').forEach(p=>{ const b=p.getBBox(); if((b.width||b.height) && b.width*b.height<=THRESH) __mc++; });
-    if(__mc > 6){ R = R * Math.max(0.5, Math.sqrt(6/__mc)); }
     const __landPaths = Array.from(wqSvg.querySelectorAll('path[data-wq-id]')).map(p => new Path2D(p.getAttribute('d')));
     const __ctx = document.createElement('canvas').getContext('2d');
     function __landClear(cx, cy, r){
