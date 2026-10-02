@@ -1318,8 +1318,8 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       if(scale < 1.2) return;
       let bx = pcx, by = pcy;
       for(const ang of [270,315,225,0,180,45,135,90].map(a=>a*Math.PI/180)){
-        const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*3.5, R+4), mapW-R-4);
-        const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*3.5, R+4), mapH-R-4);
+        const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*5.5, R+4), mapW-R-4);
+        const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*5.5, R+4), mapH-R-4);
         if(placed.every(p=>Math.hypot(p.x-tx,p.y-ty)>R*2.5)){ bx=tx; by=ty; break; }
       }
       placed.push({x:bx, y:by});
@@ -1751,8 +1751,8 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       const scale = (R * 1.6) / Math.max(bb.width, bb.height, 0.5);
       let bx = pcx, by = pcy;
       for(const ang of [270,315,225,0,180,45,135,90].map(a=>a*Math.PI/180)){
-        const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*3.5, R+4), mapW-R-4);
-        const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*3.5, R+4), mapH-R-4);
+        const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*5.5, R+4), mapW-R-4);
+        const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*5.5, R+4), mapH-R-4);
         if(placed.every(p=>Math.hypot(p.x-tx,p.y-ty)>R*2.5)){ bx=tx; by=ty; break; }
       }
       placed.push({x:bx, y:by});
