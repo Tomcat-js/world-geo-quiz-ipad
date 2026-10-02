@@ -1306,6 +1306,19 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     let __mc = 0;
     svg.querySelectorAll('path[data-code]').forEach(p=>{ const b=p.getBBox(); if((b.width||b.height) && b.width*b.height<=THRESH) __mc++; });
     if(__mc > 6){ R = R * Math.max(0.5, Math.sqrt(6/__mc)); }
+    const __landPaths = Array.from(svg.querySelectorAll('path[data-code]')).map(p => new Path2D(p.getAttribute('d')));
+    const __ctx = document.createElement('canvas').getContext('2d');
+    function __landClear(cx, cy, r){
+      const pts = [[cx,cy]];
+      for(let k=0;k<8;k++){ const a=k*Math.PI/4; pts.push([cx+Math.cos(a)*r*0.85, cy+Math.sin(a)*r*0.85]); }
+      let clear = 0;
+      for(const pt of pts){
+        let inLand = false;
+        for(const lp of __landPaths){ if(__ctx.isPointInPath(lp, pt[0], pt[1], 'evenodd')){ inLand = true; break; } }
+        if(!inLand) clear++;
+      }
+      return clear / pts.length;
+    }
     const NS = 'http://www.w3.org/2000/svg';
     let defs = svg.querySelector('defs');
     if(!defs){ defs = document.createElementNS(NS,'defs'); svg.insertBefore(defs,svg.firstChild); }
@@ -1322,15 +1335,17 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       let bx = pcx, by = pcy;
       const vBias = pcy < vb.y + mapH/2 ? 1 : -1;
       const hBias = pcx < vb.x + mapW/2 ? 1 : -1;
-      const angles = [270,315,225,0,180,45,135,90].map(a=>a*Math.PI/180).sort((a,b)=>(Math.cos(b)*hBias+Math.sin(b)*vBias)-(Math.cos(a)*hBias+Math.sin(a)*vBias));
-      let bestMinD = -Infinity;
-      outer: for(const distMul of [3.2,4.2,5.2,6.2]){
+      const angles = [270,315,225,0,180,45,135,90,292.5,337.5,247.5,22.5,157.5,202.5,112.5,67.5].map(a=>a*Math.PI/180).sort((a,b)=>(Math.cos(b)*hBias+Math.sin(b)*vBias)-(Math.cos(a)*hBias+Math.sin(a)*vBias));
+      let bestScore = -Infinity;
+      outer: for(const distMul of [3.2,4.2,5.2,6.2,7.2]){
         for(const ang of angles){
           const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*distMul, vb.x+R+4), vb.x+mapW-R-4);
           const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*distMul, vb.y+R+4), vb.y+mapH-R-4);
           const minD = placed.length ? Math.min.apply(null, placed.map(p=>Math.hypot(p.x-tx,p.y-ty))) : Infinity;
-          if(minD > R*2.3){ bx=tx; by=ty; break outer; }
-          if(minD > bestMinD){ bestMinD = minD; bx=tx; by=ty; }
+          const landClear = __landClear(tx, ty, R);
+          if(landClear >= 0.999 && minD > R*2.3){ bx=tx; by=ty; break outer; }
+          const score = landClear*1000 + Math.min(minD, R*3);
+          if(score > bestScore){ bestScore = score; bx=tx; by=ty; }
         }
       }
       placed.push({x:bx, y:by});
@@ -1751,6 +1766,19 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
     let __mc = 0;
     wqSvg.querySelectorAll('path[data-wq-id]').forEach(p=>{ const b=p.getBBox(); if((b.width||b.height) && b.width*b.height<=THRESH) __mc++; });
     if(__mc > 6){ R = R * Math.max(0.5, Math.sqrt(6/__mc)); }
+    const __landPaths = Array.from(wqSvg.querySelectorAll('path[data-wq-id]')).map(p => new Path2D(p.getAttribute('d')));
+    const __ctx = document.createElement('canvas').getContext('2d');
+    function __landClear(cx, cy, r){
+      const pts = [[cx,cy]];
+      for(let k=0;k<8;k++){ const a=k*Math.PI/4; pts.push([cx+Math.cos(a)*r*0.85, cy+Math.sin(a)*r*0.85]); }
+      let clear = 0;
+      for(const pt of pts){
+        let inLand = false;
+        for(const lp of __landPaths){ if(__ctx.isPointInPath(lp, pt[0], pt[1], 'evenodd')){ inLand = true; break; } }
+        if(!inLand) clear++;
+      }
+      return clear / pts.length;
+    }
     const NS = 'http://www.w3.org/2000/svg';
     let defs = wqSvg.querySelector('defs');
     if(!defs){ defs = document.createElementNS(NS,'defs'); wqSvg.insertBefore(defs,wqSvg.firstChild); }
@@ -1766,15 +1794,17 @@ if (typeof module !== "undefined") module.exports = WORLD_QUIZ_ITEMS;
       let bx = pcx, by = pcy;
       const vBias = pcy < vb.y + mapH/2 ? 1 : -1;
       const hBias = pcx < vb.x + mapW/2 ? 1 : -1;
-      const angles = [270,315,225,0,180,45,135,90].map(a=>a*Math.PI/180).sort((a,b)=>(Math.cos(b)*hBias+Math.sin(b)*vBias)-(Math.cos(a)*hBias+Math.sin(a)*vBias));
-      let bestMinD = -Infinity;
-      outer: for(const distMul of [3.2,4.2,5.2,6.2]){
+      const angles = [270,315,225,0,180,45,135,90,292.5,337.5,247.5,22.5,157.5,202.5,112.5,67.5].map(a=>a*Math.PI/180).sort((a,b)=>(Math.cos(b)*hBias+Math.sin(b)*vBias)-(Math.cos(a)*hBias+Math.sin(a)*vBias));
+      let bestScore = -Infinity;
+      outer: for(const distMul of [3.2,4.2,5.2,6.2,7.2]){
         for(const ang of angles){
           const tx = Math.min(Math.max(pcx + Math.cos(ang)*R*distMul, vb.x+R+4), vb.x+mapW-R-4);
           const ty = Math.min(Math.max(pcy + Math.sin(ang)*R*distMul, vb.y+R+4), vb.y+mapH-R-4);
           const minD = placed.length ? Math.min.apply(null, placed.map(p=>Math.hypot(p.x-tx,p.y-ty))) : Infinity;
-          if(minD > R*2.3){ bx=tx; by=ty; break outer; }
-          if(minD > bestMinD){ bestMinD = minD; bx=tx; by=ty; }
+          const landClear = __landClear(tx, ty, R);
+          if(landClear >= 0.999 && minD > R*2.3){ bx=tx; by=ty; break outer; }
+          const score = landClear*1000 + Math.min(minD, R*3);
+          if(score > bestScore){ bestScore = score; bx=tx; by=ty; }
         }
       }
       placed.push({x:bx, y:by});
